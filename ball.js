@@ -5,7 +5,7 @@ var io = require('socket.io')(server);
 var log4js = require('log4js');
 var logger = log4js.getLogger();
 
-var port = 8080;
+var port = 3000;
 
 logger.debug('Script has been started...');
 
