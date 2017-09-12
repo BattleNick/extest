@@ -1,5 +1,4 @@
-var port = 3000;
-var socket = io.connect('http://localhost:' + port);
+var socket = io.connect();
 
 
 socket.on('eventDrag', function(flag){
@@ -24,9 +23,10 @@ socket.on('messageToClients', function(left, top){
 var ball = document.getElementById('ball');
 ball.style.position = 'absolute';
 
+ball.addEventListener("touchstart", handleStart, false);
+ball.addEventListener("mousedown", handleStart, false);
 
-ball.onmousedown = function(e) {
-
+function handleStart(e) {
     if(ball.classList.contains('nodrag')){
         return false;
     } else {
@@ -34,18 +34,31 @@ ball.onmousedown = function(e) {
     }
 
     var coords = getCoords(ball);
-    var shiftX = e.pageX - coords.left;
-    var shiftY = e.pageY - coords.top;
+
+    console.log(e.type);
+
+    if(e.type == 'touchstart'){
+        var touch = e.touches[0] || e.changedTouches[0];
+        var shiftX = touch.pageX;
+        var shiftY = touch.pageY;
+    } else if (e.type == 'mousedown' || e.type == 'mouseup' || e.type == 'mousemove' || e.type == 'mouseover'|| e.type=='mouseout' || e.type=='mouseenter' || e.type=='mouseleave') {
+        var shiftX = e.pageX - coords.left;
+        var shiftY = e.pageY - coords.top;
+    }
+
+    /*var shiftX = e.pageX - coords.left;
+    var shiftY = e.pageY - coords.top;*/
 
     document.body.appendChild(ball);
     socket.emit('ifDrag', true);
     moveAt(e);
 
-    ball.style.zIndex = 1000; // над другими элементами
+    ball.style.zIndex = 1000;
 
+    ball.addEventListener("touchmove", handleMove, false);
+    ball.addEventListener("mousemove", handleMove, false);
 
-
-    document.onmousemove = function(e) {
+    function handleMove(e) {
         moveAt(e, shiftX, shiftY);
     };
 
@@ -55,15 +68,23 @@ ball.onmousedown = function(e) {
 
         socket.emit('ifDrag', false);
     };
+};
 
-}
 
 function moveAt(e, shiftX, shiftY) {
+    if(e.type == 'touchmove'){
+        var touch = e.touches[0] || e.changedTouches[0];
+        ball.style.left = touch.pageX - shiftX + 'px';
+        ball.style.top = touch.pageY - shiftY + 'px';
+    } else if (e.type == 'mousedown' || e.type == 'mouseup' || e.type == 'mousemove' || e.type == 'mouseover'|| e.type=='mouseout' || e.type=='mouseenter' || e.type=='mouseleave') {
+        ball.style.left = e.pageX - shiftX + 'px';
+        ball.style.top = e.pageY - shiftY + 'px';
+    }
+/*
     ball.style.left = e.pageX - shiftX + 'px';
-    ball.style.top = e.pageY - shiftY + 'px';
+    ball.style.top = e.pageY - shiftY + 'px';*/
 
     socket.emit('message', { left: ball.style.left, top: ball.style.top });
-    // console.log(ball.style.left, ball.style.top);
 }
 
 ball.ondragstart = function() {
