@@ -29,7 +29,6 @@ npm install
  Now you can run this app
  
  ````
- 
  node ball.js
  ````
  
